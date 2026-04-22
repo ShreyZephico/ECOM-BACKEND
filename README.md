@@ -1,76 +1,59 @@
-<p align="center">
-  <a href="https://www.medusajs.com">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://user-images.githubusercontent.com/59018053/229103275-b5e482bb-4601-46e6-8142-244f531cebdb.svg">
-    <source media="(prefers-color-scheme: light)" srcset="https://user-images.githubusercontent.com/59018053/229103726-e5b529a3-9b3f-4970-8a1f-c6af37f087bf.svg">
-    <img alt="Medusa logo" src="https://user-images.githubusercontent.com/59018053/229103726-e5b529a3-9b3f-4970-8a1f-c6af37f087bf.svg">
-    </picture>
-  </a>
-</p>
-<h1 align="center">
-  Medusa
-</h1>
+# Medusa Backend
 
-<h4 align="center">
-  <a href="https://docs.medusajs.com">Documentation</a> |
-  <a href="https://www.medusajs.com">Website</a>
-</h4>
+This repository contains a Medusa v2 backend with custom lookup, mapping, and combination modules for your jewelry flow.
 
-<p align="center">
-  Building blocks for digital commerce
-</p>
-<p align="center">
-  <a href="https://github.com/medusajs/medusa/blob/master/CONTRIBUTING.md">
-    <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat" alt="PRs welcome!" />
-  </a>
-    <a href="https://www.producthunt.com/posts/medusa"><img src="https://img.shields.io/badge/Product%20Hunt-%231%20Product%20of%20the%20Day-%23DA552E" alt="Product Hunt"></a>
-  <a href="https://discord.gg/xpCwq3Kfn8">
-    <img src="https://img.shields.io/badge/chat-on%20discord-7289DA.svg" alt="Discord Chat" />
-  </a>
-  <a href="https://twitter.com/intent/follow?screen_name=medusajs">
-    <img src="https://img.shields.io/twitter/follow/medusajs.svg?label=Follow%20@medusajs" alt="Follow @medusajs" />
-  </a>
-</p>
+## Scripts
 
-## Compatibility
+- `npm run dev` starts the backend in development mode.
+- `npm run build` builds the backend for production.
+- `npm start` starts the production server.
+- `npm run seed` seeds demo Medusa data.
 
-This starter is compatible with versions >= 2 of `@medusajs/medusa`. 
+## Required Environment Variables
 
-## Getting Started
+Copy [`.env.template`](D:/zephico/E-COM-Backend/.env.template) to `.env` for local development, then replace the values.
 
-Visit the [Quickstart Guide](https://docs.medusajs.com/learn/installation) to set up a server.
+- `DATABASE_URL`: Required in production. Use your Render PostgreSQL connection string.
+- `JWT_SECRET`: Required in production.
+- `COOKIE_SECRET`: Required in production.
+- `STORE_CORS`: Frontend domain list, comma-separated.
+- `ADMIN_CORS`: Admin domain list, comma-separated.
+- `AUTH_CORS`: Auth callback domain list, comma-separated.
+- `MEDUSA_WORKER_MODE`: Usually `shared` for a single Render web service.
+- `DISABLE_MEDUSA_ADMIN`: Set to `true` only if you do not want to serve Medusa Admin.
+- `REDIS_URL`: Optional unless you want Redis-backed cache and event bus. If not set, Redis modules stay disabled.
 
-Visit the [Docs](https://docs.medusajs.com/learn/installation#get-started) to learn more about our system requirements.
+## Render Setup
 
-## What is Medusa
+Use these Render settings for the web service:
 
-Medusa is a set of commerce modules and tools that allow you to build rich, reliable, and performant commerce applications without reinventing core commerce logic. The modules can be customized and used to build advanced ecommerce stores, marketplaces, or any product that needs foundational commerce primitives. All modules are open-source and freely available on npm.
+- Build command: `npm ci && npm run build`
+- Start command: `npm start`
+- Node version: `20`
 
-Learn more about [Medusa’s architecture](https://docs.medusajs.com/learn/introduction/architecture) and [commerce modules](https://docs.medusajs.com/learn/fundamentals/modules/commerce-modules) in the Docs.
+Set these environment variables in Render before deploying:
 
-## Build with AI Agents
+- `NODE_ENV=production`
+- `DATABASE_URL=<your Render Postgres external URL>`
+- `JWT_SECRET=<long random secret>`
+- `COOKIE_SECRET=<long random secret>`
+- `STORE_CORS=https://your-store-domain.com`
+- `ADMIN_CORS=https://your-admin-domain.com`
+- `AUTH_CORS=https://your-admin-domain.com`
+- `MEDUSA_WORKER_MODE=shared`
+- `DISABLE_MEDUSA_ADMIN=false`
+- `REDIS_URL=<your Redis URL>` only if you have a Redis service
 
-### Claude Code Plugin
+## Why Render Was Failing
 
-If you use AI agents like Claude Code, check out the [medusa-dev Claude Code plugin](https://github.com/medusajs/medusa-claude-plugins).
+The biggest deployment issues in this repo were:
 
-### Other Agents
+- Redis modules were always enabled even when `REDIS_URL` was missing or still pointing at `localhost`.
+- Production secrets silently fell back to insecure defaults instead of failing with a clear message.
+- The env template did not match the actual config used at startup.
+- The seed script depended on generated `.medusa` types that may not exist in a fresh deploy environment.
 
-If you use AI agents other than Claude Code, copy the [skills directory](https://github.com/medusajs/medusa-claude-plugins/tree/main/plugins/medusa-dev/skills) into your agent's relevant `skills` directory.
+## Notes
 
-### MCP Server
-
-You can also add the MCP server `https://docs.medusajs.com/mcp` to your AI agents to answer questions related to Medusa. The `medusa-dev` Claude Code plugin includes this MCP server by default.
-
-## Community & Contributions
-
-The community and core team are available in [GitHub Discussions](https://github.com/medusajs/medusa/discussions), where you can ask for support, discuss roadmap, and share ideas.
-
-Join our [Discord server](https://discord.com/invite/medusajs) to meet other community members.
-
-## Other channels
-
-- [GitHub Issues](https://github.com/medusajs/medusa/issues)
-- [Twitter](https://twitter.com/medusajs)
-- [LinkedIn](https://www.linkedin.com/company/medusajs)
-- [Medusa Blog](https://medusajs.com/blog/)
+- If you use a post-deploy seed command on Render, run it only after the database is reachable.
+- If your frontend is hosted on a different domain, make sure that exact domain is included in the CORS variables.

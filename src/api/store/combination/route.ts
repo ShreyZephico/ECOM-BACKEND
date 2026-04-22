@@ -1,14 +1,15 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 
-// =========================
-// 🔥 GENERATE VARIANTS
-// =========================
+type CombinationRequestBody = {
+  product_id?: string
+}
+
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
   const query = req.scope.resolve("query")
   const combinationService = req.scope.resolve("combination")
   const productService = req.scope.resolve("product")
-
-  const { product_id } = req.body
+  const body = (req.body ?? {}) as CombinationRequestBody
+  const { product_id } = body
 
   if (!product_id) {
     return res.status(400).json({
@@ -16,9 +17,6 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     })
   }
 
-  // =========================
-  // 1️⃣ Fetch mappings
-  // =========================
   const { data: sizes } = await query.graph({
     entity: "product_sizes",
     fields: ["*"],
@@ -44,49 +42,32 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     })
   }
 
-  // =========================
-  // 2️⃣ Generate combinations
-  // =========================
   const variants: any[] = []
 
   for (const s of sizes) {
     for (const m of metals) {
       for (const d of diamonds) {
-
         const price =
           (s.price_adjustment || 0) +
           (m.price_adjustment || 0) +
           (d.price_adjustment || 0)
 
-        const stock = Math.min(
-          s.stock || 0,
-          m.stock || 0,
-          d.stock || 0
-        )
+        const stock = Math.min(s.stock || 0, m.stock || 0, d.stock || 0)
 
-        // =========================
-        // 3️⃣ Create Medusa Variant
-        // =========================
         const medusaVariant = await productService.createProductVariants([
           {
             product_id,
-
             title: `Size ${s.size_id} / ${m.metal_id} / ${d.diamond_id}`,
-
             prices: [
               {
                 amount: price,
                 currency_code: "inr",
               },
             ],
-
             inventory_quantity: stock,
           },
         ])
 
-        // =========================
-        // 4️⃣ Store custom variant
-        // =========================
         variants.push({
           product_id,
           size_id: s.size_id,
@@ -100,9 +81,6 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     }
   }
 
-  // =========================
-  // 5️⃣ Save to DB
-  // =========================
   const created = await combinationService.createCustoProductVariants(variants)
 
   res.json({
@@ -111,28 +89,17 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
   })
 }
 
-
-// =========================
-// 🔥 GET VARIANTS
-// =========================
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
   const query = req.scope.resolve("query")
-
   const product_id =
     typeof req.query.product_id === "string"
       ? req.query.product_id
       : undefined
 
-
   const { data } = await query.graph({
     entity: "custo_product_variants",
-    fields: [
-      "*",
-      "size.*",
-      "metals.*",
-      "diamonds.*",
-      "product.*",
-    ],
+    fields: ["*", "size.*", "metals.*", "diamonds.*", "product.*"],
+    filters: product_id ? { product_id } : undefined,
   })
 
   res.json({ product_variants: data })
