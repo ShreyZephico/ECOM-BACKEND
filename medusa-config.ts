@@ -39,7 +39,7 @@ const modules = [
   { resolve: "./src/modules/combination" },
 ]
 
-module.exports = defineConfig({
+export default defineConfig({
   projectConfig: {
     databaseUrl: requireEnv("DATABASE_URL", databaseUrl),
     redisUrl,
