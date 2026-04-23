@@ -26,33 +26,36 @@ const modules = [
     ? [
         {
           resolve: "@medusajs/cache-redis",
-          key: "cache-redis", // Add this key
+          key: "cache-redis",
           options: { redisUrl },
         },
         {
           resolve: "@medusajs/event-bus-redis",
-          key: "event-bus-redis", // Add this key
+          key: "event-bus-redis",
           options: { redisUrl },
         },
       ]
     : []),
   { 
     resolve: "./src/modules/lookup",
-    key: "lookup-module" // Add key for custom module
+    key: "lookup-module"
   },
   { 
     resolve: "./src/modules/mapping",
-    key: "mapping-module" // Add key for custom module
+    key: "mapping-module"
   },
   { 
     resolve: "./src/modules/combination",
-    key: "combination-module" // Add key for custom module
+    key: "combination-module"
   },
 ]
 
-module.exports = defineConfig({
+export default defineConfig({
   projectConfig: {
     databaseUrl: requireEnv("DATABASE_URL", databaseUrl),
+    databaseExtra: {
+      ssl: isProduction ? { rejectUnauthorized: false } : false,
+    },
     redisUrl,
     workerMode,
     http: {
@@ -70,9 +73,6 @@ module.exports = defineConfig({
         process.env.AUTH_CORS ||
         "http://localhost:5173,http://localhost:9000,https://docs.medusajs.com",
     },
-  },
-  admin: {
-    disable: process.env.DISABLE_MEDUSA_ADMIN === "true",
   },
   modules,
 })
