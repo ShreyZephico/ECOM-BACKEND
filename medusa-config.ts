@@ -26,20 +26,31 @@ const modules = [
     ? [
         {
           resolve: "@medusajs/cache-redis",
+          key: "cache-redis", // Add this key
           options: { redisUrl },
         },
         {
           resolve: "@medusajs/event-bus-redis",
+          key: "event-bus-redis", // Add this key
           options: { redisUrl },
         },
       ]
     : []),
-  { resolve: "./src/modules/lookup" },
-  { resolve: "./src/modules/mapping" },
-  { resolve: "./src/modules/combination" },
+  { 
+    resolve: "./src/modules/lookup",
+    key: "lookup-module" // Add key for custom module
+  },
+  { 
+    resolve: "./src/modules/mapping",
+    key: "mapping-module" // Add key for custom module
+  },
+  { 
+    resolve: "./src/modules/combination",
+    key: "combination-module" // Add key for custom module
+  },
 ]
 
-export default defineConfig({
+module.exports = defineConfig({
   projectConfig: {
     databaseUrl: requireEnv("DATABASE_URL", databaseUrl),
     redisUrl,
