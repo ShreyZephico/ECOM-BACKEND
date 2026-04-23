@@ -25,37 +25,44 @@ const modules = [
   ...(redisUrl
     ? [
         {
-          resolve: "@medusajs/cache-redis",
-          key: "cache-redis",
+          resolve: "@medusajs/medusa/cache-redis",
+          key: "cache",
           options: { redisUrl },
         },
         {
-          resolve: "@medusajs/event-bus-redis",
-          key: "event-bus-redis",
+          resolve: "@medusajs/medusa/event-bus-redis",
+          key: "event_bus",
           options: { redisUrl },
         },
       ]
     : []),
-  { 
+  {
     resolve: "./src/modules/lookup",
-    key: "lookup-module"
+    key: "lookup_module",
   },
-  { 
+  {
     resolve: "./src/modules/mapping",
-    key: "mapping-module"
+    key: "mapping_module",
   },
-  { 
+  {
     resolve: "./src/modules/combination",
-    key: "combination-module"
+    key: "combination_module",
   },
 ]
 
 export default defineConfig({
   projectConfig: {
     databaseUrl: requireEnv("DATABASE_URL", databaseUrl),
-    databaseExtra: {
-      ssl: isProduction ? { rejectUnauthorized: false } : false,
-    },
+    // For local development, no SSL needed
+    ...(isProduction && {
+      databaseDriverOptions: {
+        connection: {
+          ssl: {
+            rejectUnauthorized: false,
+          },
+        },
+      },
+    }),
     redisUrl,
     workerMode,
     http: {
